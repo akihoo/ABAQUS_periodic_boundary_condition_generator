@@ -32,7 +32,7 @@ def makewin():
               [sg.Text('  ', size=(55, 1)), sg.B('Write to File',key='-write-')],
               [sg.Exit()],
               [sg.StatusBar(' ',key='-status-'), sg.ProgressBar(100, s=(20,20), key='-prog')]]
-    return sg.Window('File Compare', layout)
+    return sg.Window('ABAQUS PBC maker', layout)
 
 def main():
 

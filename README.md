@@ -8,3 +8,8 @@ A nifty little GUI for node matching on master-slave surfaces, pairing them and 
 
 ## Usage
 Should be used top to down step-by-step.
+
+
+## Screenshot
+
+![Screenshot](https://github.com/saiwal/ABAQUS_periodic_boundary_condition_generator/blob/b33b04a8345a22613848a16a3607b0f6be46dd43/screenshot.png)

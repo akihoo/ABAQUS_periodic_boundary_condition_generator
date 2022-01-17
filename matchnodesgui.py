@@ -22,6 +22,8 @@ def makewin():
               [sg.Text('Slave surface name',size=(25,1)), sg.InputText(key='-ssurf-')],
               [sg.B('Generate slave nodes', key='-slndgen-')],
               [sg.B('Pair nodes',key='-pair-')],
+              [sg.Text('_'  * 27, size=(27, 1)),sg.Text('Write node sets', size=(16, 1)),sg.Text('_'  * 27, size=(27, 1))],
+              [sg.B('Nset master'), sg.B('Nset slave')],
               [sg.Text('_'  * 30, size=(30, 1)),sg.Text('Parameters', size=(10, 1)),sg.Text('_'  * 30, size=(30, 1))],
               [sg.Text('DOF (1,2 or 3)', size=(25, 1)) ,sg.InputText(' ', key='-dof-')],
               [sg.Text('N (no. of eqs.(3))', size=(25, 1)) ,sg.InputText(' ', key='-N-')],
@@ -58,6 +60,10 @@ def main():
                 coord_pair = pairnodes(msnds,slnds,coords)
             if event == '-write-':
                 writetof(values,coord_pair)
+            if event =='Nset master':
+                writend(coord_pair, values['-msurf-'])
+            if event =='Nset slave' :
+                    writend(coord_pair, values['-ssurf-'])
     window.close()
 
 def getcoord(fn):
@@ -189,6 +195,14 @@ def writetof(values, coord_pair):
         eqs.write("slave_"+repr(nds)+", "+ dof +", "+ As+'\n')
         eqs.write(ndummy+ ", "+ dof +", "+ Au+'\n')
     eqs.close()
+
+def writend(coord_pair, surf):
+# write nodesets master
+    ndsetms = open(surf+"_nodesets.txt", 'w+')
+    for i in coord_pair:
+        ndsetms.write("*Nset, nset=master_"+repr(int(i[0]))+", instance = Part-1-1"+'\n')
+        ndsetms.write(repr(int(i[0]))+","+'\n')
+
 
 
 def flatten(nasted_list):

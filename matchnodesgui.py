@@ -18,6 +18,7 @@ def makewin():
               [sg.B('get COORDS',key='-coord-')],
               [sg.Text('_'  * 100, size=(74, 1))],
               [sg.Text('Master surface name',size=(25,1)), sg.InputText(key='-msurf-')],
+              [sg.Text('Excluded nodeset',size=(25,1)), sg.InputText(key='-excl-')],
               [sg.B('Generate master nodes',key ='-msndgen-')],
               [sg.Text('Slave surface name',size=(25,1)), sg.InputText(key='-ssurf-')],
               [sg.B('Generate slave nodes', key='-slndgen-')],
@@ -26,7 +27,7 @@ def makewin():
               [sg.B('Nset master'), sg.B('Nset slave')],
               [sg.Text('_'  * 30, size=(30, 1)),sg.Text('Parameters', size=(10, 1)),sg.Text('_'  * 30, size=(30, 1))],
               [sg.Text('DOF (1,2 or 3)', size=(25, 1)) ,sg.InputText(' ', key='-dof-')],
-              [sg.Text('N (no. of eqs.(3))', size=(25, 1)) ,sg.InputText(' ', key='-N-')],
+              [sg.Text('N (no. of terms.(3))', size=(25, 1)) ,sg.InputText(' ', key='-N-')],
               [sg.Text('Am coeff. (1)', size=(25, 1)) ,sg.InputText(' ', key='-Am-')],
               [sg.Text('As coeff. (-1)', size=(25, 1)) ,sg.InputText(' ', key='-As-')],
               [sg.Text('Au coeff. (-1,0,1)', size=(25, 1)) ,sg.InputText(' ', key='-Au-')],
@@ -51,19 +52,20 @@ def main():
                 coords = getcoord(fn)
                 window['-status-'].update('coords obtained')
             if event == '-msndgen-':
-                msnds = getnd(fn,values['-msurf-'])
+                msnds = getnd(fn,values['-msurf-'],values['-excl-'])
                 window['-status-'].update('master nodes obtained')
             if event == '-slndgen-':
-                slnds = getnd(fn,values['-ssurf-'])
+                slnds = getnd(fn,values['-ssurf-'],values['-excl-'])
                 window['-status-'].update('slave nodes obtained')
             if event == '-pair-':
+#                exclnd = getnd(fn,values['-excl-'])
                 coord_pair = pairnodes(msnds,slnds,coords)
             if event == '-write-':
                 writetof(values,coord_pair)
             if event =='Nset master':
-                writend(coord_pair, values['-msurf-'])
+                writend(coord_pair, values['-msurf-'], 'master')
             if event =='Nset slave' :
-                    writend(coord_pair, values['-ssurf-'])
+                    writend(coord_pair, values['-ssurf-'], 'slave')
     window.close()
 
 def getcoord(fn):
@@ -90,9 +92,10 @@ def getcoord(fn):
         i = [x.strip('\n') for x in i]
         i = [float(j) for j in i]
         coords.append(i)
+    print("Coordinates obtained")
     return (coords)
 
-def getnd(fn, surf):
+def getnd(fn, surf, excl):
     file = open(fn)
     lines = file.readlines()
     ctr = 1
@@ -124,7 +127,40 @@ def getnd(fn, surf):
         ele = i.split(',')
         for e in ele:
             msnd.append(int(e))
-    return(msnd)
+    # get excluded nodes
+    ctr = 1
+    exstr = 0
+    exstp = 0
+    exnd = []
+    lin2 = "*Nset, nset=" + excl
+    for line in lines:
+        if line.find(lin2) >= 0 :
+            exstr = ctr + 1
+            continue
+        if exstr > 0:
+            exnd.append(line)
+            #msnd.write(line)
+            if line.find("*") >= 0 :
+                exstp = ctr
+                break
+        ctr = ctr + 1
+    exnd.pop()
+    print(excl+" surface nodes start on line",exstr)
+    print(excl+" surface nodes end on line",exstp)
+    exnds = []
+    tmp = []
+    for i in exnd:
+        tmp.append(i.strip())
+    flatten(tmp)
+    exnd = []
+    for i in tmp:
+        ele = i.split(',')
+        for e in ele:
+            exnd.append(int(e))
+    list1 = [ele for ele in msnd if ele not in exnd]
+    print(list1)
+    return(list1)
+
 
 def pairnodes(msnds,slnds,coords):
     ln = len(slnds)
@@ -142,6 +178,7 @@ def pairnodes(msnds,slnds,coords):
             cj = cj + 1
         ci = ci + 1
     ci = 0
+    # print(msnds)
     for i in slnds:
         cj = 0
         for j in coords:
@@ -153,7 +190,9 @@ def pairnodes(msnds,slnds,coords):
             cj = cj + 1
         ci = ci + 1
     coord_mas = [u + v for u, v in zip(msnds, slnds)]
-    coord_pair = [[0,0,0,0,0,0,0,0]]*ln
+    # coord_pair = [[0,0,0,0,0,0,0,0]]*ln
+    coord_pair = []
+    # print(coord_pair)
     ci = 0
     disp = 20
     for i in coord_mas:
@@ -164,16 +203,18 @@ def pairnodes(msnds,slnds,coords):
                 pair_in = cj
                 disp = dis
             cj = cj + 1
-        coord_pair[ci][0] = coord_mas[ci][0]
-        coord_pair[ci][1] = coord_mas[ci][1]
-        coord_pair[ci][2] = coord_mas[ci][2]
-        coord_pair[ci][3] = coord_mas[ci][3]
-        coord_pair[ci][4] = coord_mas[pair_in][4]
-        coord_pair[ci][5] = coord_mas[pair_in][5]
-        coord_pair[ci][6] = coord_mas[pair_in][6]
-        coord_pair[ci][7] = coord_mas[pair_in][7]
+        ci0 = coord_mas[ci][0]
+        ci1 = coord_mas[ci][1]
+        ci2 = coord_mas[ci][2]
+        ci3 = coord_mas[ci][3]
+        ci4 = coord_mas[pair_in][4]
+        ci5 = coord_mas[pair_in][5]
+        ci6 = coord_mas[pair_in][6]
+        ci7 = coord_mas[pair_in][7]
+        coord_pair.append([ci0,ci1,ci2,ci3,ci4,ci5,ci6,ci7])
+        # print(coord_pair[ci])
         ci = ci + 1
-    print(coord_pair)
+    # print(coord_pair)
     return coord_pair
 
 def writetof(values, coord_pair):
@@ -196,12 +237,17 @@ def writetof(values, coord_pair):
         eqs.write(ndummy+ ", "+ dof +", "+ Au+'\n')
     eqs.close()
 
-def writend(coord_pair, surf):
+def writend(coord_pair, surf, type):
 # write nodesets master
     ndsetms = open(surf+"_nodesets.txt", 'w+')
+    if type == 'master':
+        iin = 0
+    else:
+        iin = 4
     for i in coord_pair:
-        ndsetms.write("*Nset, nset=master_"+repr(int(i[0]))+", instance = Part-1-1"+'\n')
-        ndsetms.write(repr(int(i[0]))+","+'\n')
+        print(i[iin])
+        ndsetms.write("*Nset, nset="+type+"_"+repr(int(i[iin]))+", instance = Part-1-1"+'\n')
+        ndsetms.write(repr(int(i[iin]))+","+'\n')
 
 
 

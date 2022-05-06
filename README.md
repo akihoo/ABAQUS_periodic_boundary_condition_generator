@@ -8,10 +8,13 @@ A nifty little GUI for node matching on master-slave surfaces, pairing them and 
 
 ## Features
 * includes adding strain as displacement of dummy node.
+* exclude node sets from constraining equations.
+* generates master/slave nodesets and constraining equations.
 
 ## Usage
 * Should be used top to down step-by-step.
 * Surfaces should be defined on part as node sets.
+* Excluded node sets should be defined and selected to exclude constraining them.
 
 ## Screenshot
 

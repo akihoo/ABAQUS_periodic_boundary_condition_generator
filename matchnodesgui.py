@@ -8,6 +8,7 @@ Created on Thu Jan 13 18:20:34 2022
 import PySimpleGUI as sg
 import sys
 import numpy as np
+import os
 
 def makewin():
     sg.ChangeLookAndFeel('GreenTan')         # Add a touch of color
@@ -40,7 +41,7 @@ def makewin():
 def main():
 
     window = makewin()
-
+    pwd = print(os.getcwd())
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == 'Exit':
@@ -218,9 +219,9 @@ def pairnodes(msnds,slnds,coords):
     return coord_pair
 
 def writetof(values, coord_pair):
-
+    pwd = os.getcwd()+"/"
     eqfile = values['-msurf-'] + "_" + values['-ssurf-'] + "_" + values['-dof-'] + "_" + "constraints.txt"
-    eqs = open(eqfile, 'w+')
+    eqs = open(pwd+eqfile, 'w+')
     dof = values['-dof-']
     N = values['-N-']
     Am = values['-Am-']
@@ -239,7 +240,8 @@ def writetof(values, coord_pair):
 
 def writend(coord_pair, surf, type):
 # write nodesets master
-    ndsetms = open(surf+"_nodesets.txt", 'w+')
+    pwd = os.getcwd()+"/"
+    ndsetms = open(pwd+surf+"_nodesets.txt", 'w+')
     if type == 'master':
         iin = 0
     else:
